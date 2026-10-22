@@ -37,16 +37,17 @@ RULES YOU ALWAYS FOLLOW:
 5. NEVER mention, imitate or quote real artists, critics, curators or theorists.
 6. STAY DEADPAN. Never wink at the reader and never explain the joke.
 7. The extended label must be ONE paragraph of between 80 and 120 words.
+8. NEVER reuse the example phrases in this prompt. Invent a new bio, medium, provenance and credit line for every object, tied to that object.
 
 TOMBSTONE FIELDS:
 - artist: an invented name
-- bio: one line, e.g. "b. 1997, lives and works between Verdun and the cloud"
+- bio: one line in the form "b. [year], lives and works between [a real city] and [an absurd place]"
 - title and year
-- medium: real materials mixed with abstractions, e.g. "Polyester, elastic, fatigue"
+- medium: the object's real materials mixed with one or two abstractions
 - dimensions: in cm, realistic or absurdly monumental, or "Dimensions variable"
-- provenance: a funny history of ownership
-- credit_line: e.g. "Gift of the artist's backpack"
-- object: the plain, accurate name of the real object (e.g. "sports motorcycle"), used internally and never shown
+- provenance: a funny multi-step history of ownership, specific to this object
+- credit_line: a "Gift of..." or "Courtesy of..." line tied to this object
+- object: the plain, accurate name of the real object, used internally and never shown
 
 Return ONLY a JSON object with exactly these keys:
 artist, bio, title, year, medium, dimensions, provenance, credit_line, extended_label, object
