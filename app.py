@@ -18,7 +18,6 @@ SETTINGS = [
     "a lone plinth under a single spotlight",
     "a biennale pavilion with raw industrial walls",
 ]
-
 LABEL_SYSTEM_PROMPT = """
 You are the curatorial department of an imaginary contemporary art museum.
 A visitor describes an ordinary object. You turn it into a work of art by writing
@@ -47,9 +46,10 @@ TOMBSTONE FIELDS:
 - dimensions: in cm, realistic or absurdly monumental, or "Dimensions variable"
 - provenance: a funny history of ownership
 - credit_line: e.g. "Gift of the artist's backpack"
+- object: the plain, accurate name of the real object (e.g. "sports motorcycle"), used internally and never shown
 
 Return ONLY a JSON object with exactly these keys:
-artist, bio, title, year, medium, dimensions, provenance, credit_line, extended_label
+artist, bio, title, year, medium, dimensions, provenance, credit_line, extended_label, object
 """
 
 IMAGE_PROMPT_SYSTEM = """
@@ -59,15 +59,15 @@ artwork installed in an exhibition.
 
 RULES:
 - Describe the object accurately, using the title, medium and extended label.
+- The real object (see the "object" field) must stay clearly recognisable: keep its true shape, parts and function visible. Do not turn it into an abstract sculpture of something else.
 - Use the DIMENSIONS to set the scale. If they are huge (e.g. 600 x 400 cm), the object
   fills the room and visitors look tiny. If they are small, it sits modestly on display.
   If they say "dimensions variable", show the work spreading or changing across the space.
 - Use the curatorial setting you are given.
 - Style: professional exhibition photography, soft gallery lighting.
-- The image must contain NO text, NO captions and NO wall labels.
+- Never include a title card, caption or label in the picture.
 Return only the prompt.
 """
-
 
 def word_count(text):
     return len(text.split())
@@ -91,7 +91,6 @@ def make_label(description):
             break
     return label
 
-
 def make_image_prompt(label):
     """Step 2: write the image prompt FROM THE LABEL (not from the raw description)."""
     setting = random.choice(SETTINGS)
@@ -104,9 +103,10 @@ def make_image_prompt(label):
         ],
         temperature=0.7,
     )
-    return response.choices[0].message.content.strip()
+    prompt = response.choices[0].message.content.strip()
+    return prompt + " Absolutely no text, captions, wall labels, signage or lettering anywhere in the image."
 
-
+    
 def make_image(image_prompt):
     """Step 3: generate the image and return something a web page can display."""
     result = client.images.generate(model=IMAGE_MODEL, prompt=image_prompt, size="1024x1024")
