@@ -18,6 +18,14 @@ SETTINGS = [
     "a lone plinth under a single spotlight",
     "a biennale pavilion with raw industrial walls",
 ]
+
+DIMENSION_STYLES = [
+    "realistic, true to the object's actual size",
+    "absurdly monumental, several metres in each direction",
+    "miniature, a few millimetres or centimetres",
+    "dimensions variable",
+]
+
 LABEL_SYSTEM_PROMPT = """
 You are the curatorial department of an imaginary contemporary art museum.
 A visitor describes an ordinary object. You turn it into a work of art by writing
@@ -38,13 +46,15 @@ RULES YOU ALWAYS FOLLOW:
 6. STAY DEADPAN. Never wink at the reader and never explain the joke.
 7. The extended label must be ONE paragraph of between 80 and 120 words.
 8. NEVER reuse the example phrases in this prompt. Invent a new bio, medium, provenance and credit line for every object, tied to that object.
+9. Begin every tombstone field with a capital letter.
 
 TOMBSTONE FIELDS:
 - artist: an invented name
 - bio: one line in the form "b. [year], lives and works between [a real city] and [an absurd place]"
-- title and year
+- title: the title of the work only. Do NOT put the year in the title.
+- year: a four-digit year, e.g. 2024
 - medium: the object's real materials mixed with one or two abstractions
-- dimensions: in cm, realistic or absurdly monumental, or "Dimensions variable"
+- dimensions: in cm, following the "Dimensions style" given in the request (or exactly "Dimensions variable" if that is the style)
 - provenance: a funny multi-step history of ownership, specific to this object
 - credit_line: a "Gift of..." or "Courtesy of..." line tied to this object
 - object: the plain, accurate name of the real object, used internally and never shown
@@ -77,12 +87,13 @@ def word_count(text):
 def make_label(description):
     """Step 1: write the museum label. Retry if the extended label has the wrong length."""
     label = {}
+    dim_style = random.choice(DIMENSION_STYLES)
     for attempt in range(3):
         response = client.chat.completions.create(
             model=TEXT_MODEL,
             messages=[
                 {"role": "system", "content": LABEL_SYSTEM_PROMPT},
-                {"role": "user", "content": f"Object: {description}"},
+                {"role": "user", "content": f"Object: {description}\nDimensions style for this work: {dim_style}"},
             ],
             response_format={"type": "json_object"},
             temperature=1.0,
@@ -91,7 +102,7 @@ def make_label(description):
         if 80 <= word_count(label.get("extended_label", "")) <= 120:
             break
     return label
-
+    
 def make_image_prompt(label):
     """Step 2: write the image prompt FROM THE LABEL (not from the raw description)."""
     setting = random.choice(SETTINGS)
