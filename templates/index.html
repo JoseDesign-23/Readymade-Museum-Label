@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Readymade</title>
+  <style>
+    body { font-family: Helvetica, Arial, sans-serif; background: #f4f1ef; margin: 0; padding: 24px; color: #111; }
+    h1 { font-size: 1.5rem; }
+    form { display: flex; gap: 8px; max-width: 1000px; }
+    input { flex: 1; padding: 10px; font-size: 1rem; border: 1px solid #999; }
+    button { background: #111; color: #fff; border: 0; padding: 10px 18px; font-size: 1rem; cursor: pointer; }
+    #status { margin: 16px 0; color: #555; }
+    #exhibit { display: none; flex-wrap: wrap; gap: 24px; max-width: 1000px; margin-top: 20px; align-items: flex-start; }
+    #exhibit img { flex: 2; min-width: 280px; max-width: 100%; }
+    #label { flex: 1; min-width: 240px; background: #fff; padding: 16px; font-size: 0.85rem; line-height: 1.45; }
+    #label p { margin: 0 0 10px; }
+    .artist { font-weight: bold; }
+    .title { font-style: italic; }
+    hr { border: 0; border-top: 1px solid #ddd; margin: 12px 0; }
+  </style>
+</head>
+<body>
+  <h1>Describe an object and get it exhibited with its label.</h1>
+  <form id="form">
+    <input id="description" placeholder="e.g. my cat Novita" maxlength="300" required>
+    <button id="btn" type="submit">Accession</button>
+  </form>
+  <div id="status"></div>
+
+  <div id="exhibit">
+    <img id="art" alt="The object installed in an exhibition">
+    <div id="label"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById("form");
+    const statusBox = document.getElementById("status");
+    const exhibit = document.getElementById("exhibit");
+    const labelBox = document.getElementById("label");
+    const art = document.getElementById("art");
+    const btn = document.getElementById("btn");
+
+    function addLine(text, className) {
+      const p = document.createElement("p");
+      if (className) p.className = className;
+      p.textContent = text;
+      labelBox.appendChild(p);
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const description = document.getElementById("description").value;
+      btn.disabled = true;
+      exhibit.style.display = "none";
+      statusBox.textContent = "The curators are deliberating... (this can take up to a minute)";
+
+      try {
+        const res = await fetch("/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description })
+        });
+        const data = await res.json();
+        if (!res.ok) { statusBox.textContent = data.error; btn.disabled = false; return; }
+
+        const L = data.label;
+        art.src = data.image;
+        labelBox.innerHTML = "";
+        addLine(L.artist, "artist");
+        addLine(L.bio);
+        addLine(L.title + ", " + L.year, "title");
+        addLine(L.medium);
+        addLine(L.dimensions);
+        addLine(L.provenance);
+        addLine(L.credit_line);
+        labelBox.appendChild(document.createElement("hr"));
+        addLine(L.extended_label);
+
+        statusBox.textContent = "";
+        exhibit.style.display = "flex";
+      } catch (err) {
+        statusBox.textContent = "Something went wrong. Please try again.";
+      }
+      btn.disabled = false;
+    });
+  </script>
+</body>
+</html>
