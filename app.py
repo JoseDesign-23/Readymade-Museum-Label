@@ -77,6 +77,8 @@ RULES:
 - Use the curatorial setting you are given.
 - Style: professional exhibition photography, soft gallery lighting.
 - Never include a title card, caption or label in the picture.
+- Do NOT write any artist name, title, number or measurement in your prompt. Describe scale only in words, for example "a tiny object on a huge plinth" or "an object towering over the visitors".
+- Describe only what can be seen: shapes, materials, colours, light, the room and the visitors.
 Return only the prompt.
 """
 
@@ -104,19 +106,25 @@ def make_label(description):
     return label
     
 def make_image_prompt(label):
-    """Step 2: write the image prompt FROM THE LABEL (not from the raw description)."""
+    """Step 2: write the image prompt FROM THE LABEL (only its visual fields)."""
     setting = random.choice(SETTINGS)
+    visual_label = {
+        "object": label.get("object"),
+        "title": label.get("title"),
+        "medium": label.get("medium"),
+        "dimensions": label.get("dimensions"),
+    }
     response = client.chat.completions.create(
         model=TEXT_MODEL,
         messages=[
             {"role": "system", "content": IMAGE_PROMPT_SYSTEM},
             {"role": "user", "content": f"Curatorial setting: {setting}\n\nLabel:\n"
-                                        + json.dumps(label, ensure_ascii=False)},
+                                        + json.dumps(visual_label, ensure_ascii=False)},
         ],
         temperature=0.7,
     )
     prompt = response.choices[0].message.content.strip()
-    return prompt + " Absolutely no text, captions, wall labels, signage or lettering anywhere in the image."
+    return prompt + " Absolutely no text, captions, wall labels, signage, numbers or lettering anywhere in the image."
 
     
 def make_image(image_prompt):
